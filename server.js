@@ -1,9 +1,22 @@
 const express = require("express");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
+const session = require("express-session");
 const app = express();
 
 app.use(express.json());
+app.use(
+  session({
+    secret: "bbzw",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    },
+  })
+);
 
 // Benutzer aus der JSON-Datei laden
 const users = JSON.parse(fs.readFileSync("users.json"));
@@ -19,11 +32,22 @@ app.post("/login", async (req, res) => {
 
   const isMatch = await bcrypt.compare(password, user.password);
 
-  if (isMatch) {
-    return res.send("Login erfolgreich");
+  if (!isMatch) {
+    return res.status(401).send("Login fehlgeschlagen");
   }
 
-  res.status(401).send("Login fehlgeschlagen");
+  req.session.user = { username: user.username, role: user.role };
+  res.send("Login erfolgreich");
+});
+
+app.get("/profile", (req, res) => {
+  const sessionUser = req.session.user;
+
+  if (!sessionUser) {
+    return res.status(401).send("Nicht angemeldet");
+  }
+
+  res.json(sessionUser);
 });
 
 app.listen(3000, () => {

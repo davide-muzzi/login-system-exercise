@@ -11,10 +11,30 @@ app.use(express.json());
 // Benutzer aus der JSON-Datei laden
 const users = JSON.parse(fs.readFileSync("users.json"));
 
+app.post("/register", async (req, res) => {
+  const { username, password, role = "student" } = req.body || {};
+
+  if (!username || !password) {
+    return res.status(400).send("Username und Passwort erforderlich");
+  }
+
+  if (users.find(u => u.username === username)) {
+    return res.status(409).send("Username bereits vergeben");
+  }
+
+  if (!isPasswordValid(password)) {
+    return res.status(400).send("Passwort erfüllt Richtlinien nicht");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  users.push({ username, password: hashedPassword, role });
+  res.status(201).send("User erfolgreich registriert");
+});
+
 // Route: Login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username);
+  const user = users.find((u) => u.username === username);
   const attemptInfo = failedAttempts[username];
 
   if (attemptInfo?.locked) {
@@ -37,11 +57,9 @@ app.post("/login", async (req, res) => {
   }
 
   clearFailedAttempts(username);
-  const token = jwt.sign(
-    { username: user.username, role: user.role },
-    "bbzw",
-    { expiresIn: "5m" }
-  );
+  const token = jwt.sign({ username: user.username, role: user.role }, "bbzw", {
+    expiresIn: "5m",
+  });
 
   res.json({ token });
 });
@@ -77,6 +95,17 @@ function clearFailedAttempts(username) {
   if (username && failedAttempts[username]) {
     delete failedAttempts[username];
   }
+}
+
+function isPasswordValid(password) {
+  return (
+    typeof password === "string" &&
+    password.length >= 10 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[*+%&?\$]/.test(password)
+  );
 }
 
 app.listen(3000, () => {

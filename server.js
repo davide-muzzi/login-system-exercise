@@ -24,6 +24,26 @@ app.use(
 const users = JSON.parse(fs.readFileSync("users.json"));
 
 // Route: Login
+app.post("/register", async (req, res) => {
+  const { username, password, role = "student" } = req.body || {};
+
+  if (!username || !password) {
+    return res.status(400).send("Username und Passwort erforderlich");
+  }
+
+  if (users.find(u => u.username === username)) {
+    return res.status(409).send("Username bereits vergeben");
+  }
+
+  if (!isPasswordValid(password)) {
+    return res.status(400).send("Passwort erfüllt Richtlinien nicht");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  users.push({ username, password: hashedPassword, role });
+  res.status(201).send("User erfolgreich registriert");
+});
+
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   const user = users.find(u => u.username === username);
@@ -67,6 +87,17 @@ function clearFailedAttempts(username) {
   if (username && failedAttempts[username]) {
     delete failedAttempts[username];
   }
+}
+
+function isPasswordValid(password) {
+  return (
+    typeof password === "string" &&
+    password.length >= 10 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[*+%&?\$]/.test(password)
+  );
 }
 
 app.get("/profile", (req, res) => {

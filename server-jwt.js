@@ -33,6 +33,23 @@ app.post("/login", async (req, res) => {
   res.json({ token });
 });
 
+app.post("/api", (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).send("Token fehlt");
+  }
+
+  const token = authHeader.substring(7);
+
+  try {
+    const payload = jwt.verify(token, "bbzw");
+    res.json({ message: `Hallo ${payload.username}!`, role: payload.role });
+  } catch (err) {
+    res.status(401).send("Token ungültig");
+  }
+});
+
 app.listen(3000, () => {
   console.log("Server läuft auf Port 3000");
 });

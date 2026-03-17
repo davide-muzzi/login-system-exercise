@@ -1,22 +1,22 @@
 [
   {
     "username": "admin",
-    "password": "admin123",
+    "password": "$2b$10$SdQfI2f9PN4eJrV8J1gS2OPfv.7tYYQjJ115e.t8MnJuKuUGC1am2",
     "role": "admin"
   },
   {
     "username": "max",
-    "password": "password",
+    "password": "$2b$10$QAQWXu3Ch5kaz02vIOjEZOdyvcTkxsg0uLb02vTWKxZEcgztkNDgq",
     "role": "student"
   },
   {
     "username": "anna",
-    "password": "anna2026",
+    "password": "$2b$10$Jfi24ynfMRm0FGTB6pEIpulqK5FUcerVC53Pr8Wo0TxjHt6MSWyFO",
     "role": "student"
   },
   {
     "username": "guest",
-    "password": "guest",
+    "password": "$2b$10$mB/HbZE8GkmpHwbOXHIKiujlBt/TZGUXOCourIGnJwK73rNdEbnoK",
     "role": "guest"
   }
 ]

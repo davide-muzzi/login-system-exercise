@@ -1,5 +1,6 @@
 const express = require("express");
 const fs = require("fs");
+const bcrypt = require("bcrypt");
 const app = express();
 
 app.use(express.json());
@@ -8,20 +9,21 @@ app.use(express.json());
 const users = JSON.parse(fs.readFileSync("users.json"));
 
 // Route: Login
-app.post("/login", (req, res) => {
-
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
+  const user = users.find(u => u.username === username);
 
-  const user = users.find(
-    u => u.username === username && u.password === password
-  );
-
-  if (user) {
-    res.send("Login erfolgreich");
-  } else {
-    res.status(401).send("Login fehlgeschlagen");
+  if (!user) {
+    return res.status(401).send("Login fehlgeschlagen");
   }
 
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (isMatch) {
+    return res.send("Login erfolgreich");
+  }
+
+  res.status(401).send("Login fehlgeschlagen");
 });
 
 app.listen(3000, () => {

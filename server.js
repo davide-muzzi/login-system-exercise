@@ -50,6 +50,22 @@ app.get("/profile", (req, res) => {
   res.json(sessionUser);
 });
 
+app.post("/logout", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).send("Nicht angemeldet");
+  }
+
+  req.session.destroy(err => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Logout fehlgeschlagen");
+    }
+
+    res.clearCookie("connect.sid");
+    res.send("Logout erfolgreich");
+  });
+});
+
 app.listen(3000, () => {
   console.log("Server läuft auf Port 3000");
 });
